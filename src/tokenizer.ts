@@ -29,9 +29,9 @@ const NUMBER_RE =
 export class Tokenizer {
   private input: string;
   private length: number;
-  private index = 0;
-  private line = 1;
-  private col = 1;
+  private index: number = 0;
+  private line: number = 1;
+  private col: number = 1;
 
   constructor(input: string) {
     this.input = input;
