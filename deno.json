@@ -1,12 +1,13 @@
 {
   "tasks": {
-    "dev": "deno run --watch --allow-net main.ts"
+    "test": "deno test --allow-read --allow-write"
   },
+  "exclude": ["references/"],
   "imports": {
     "@std/assert": "jsr:@std/assert@1"
   },
   "exports": "./src/mod.ts",
   "license": "MIT",
-  "name": "zon",
+  "name": "@jassielof/zon",
   "version": "0.1.0"
 }

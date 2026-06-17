@@ -1,0 +1,13 @@
+{
+  "multiline_str": "line one of the string\nline two with escape-like chars \\n \\u{1234} (which are NOT resolved in multiline)\nline three",
+  "nested_tuples": [
+    [
+      1,
+      2
+    ],
+    [
+      3,
+      4
+    ]
+  ]
+}

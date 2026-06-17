@@ -1,59 +1,48 @@
-/**
- *
- * @param input
- * @returns
- */
-export function parse(input: string): any {
-  console.log("Parsing input:", input);
-}
-
-/**
- *
- * @param input
- * @returns
- */
-export function stringify(input: any): string {
-  return input;
-}
+export { parse } from "./parser.ts";
+export { stringify } from "./serializer.ts";
+export {
+  CharLiteral,
+  EnumLiteral,
+  type ParseOptions,
+  type StringifyOptions,
+  type ZonValue,
+} from "./types.ts";
 
 /**
  * Represents the manifest file for a Zig project.
  */
-interface Manifest {
+export interface Manifest {
   name: string;
   version: string;
-  fingerprint: string;
+  fingerprint: string | bigint;
   dependencies: Dependency[];
   minimumZigVersion: string;
-  paths: [string];
+  paths: string[];
 }
 
 /**
  * Represents the environment output by the Zig compiler when invoked with `zig env`.
  */
-interface Environment {
-  zig_env: string;
+export interface Environment {
+  zig_exe: string;
   lib_dir: string;
   std_dir: string;
-  globalCacheDir: string;
+  global_cache_dir: string;
   version: string;
   target: string;
-  env: {
-    zigGlobalCacheDir: string;
-  };
+  env: Record<string, string | null>;
 }
 
-type Dependency = PathDependency | PackageDependency;
+export type Dependency = PathDependency | PackageDependency;
 
-interface PathDependency {
+export interface PathDependency {
   path: string;
   url?: never;
   hash?: never;
 }
 
-interface PackageDependency {
+export interface PackageDependency {
   url: string;
   hash: string;
-
   path?: never;
 }

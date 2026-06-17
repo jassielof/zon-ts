@@ -1,0 +1,15 @@
+.{
+    .hex_int = 0xffe0_babe,
+    .binary_int = 0b101101,
+    .octal_int = 0o755,
+    .hex_float = 0x1.a2p+3,
+    .nan_val = nan,
+    .inf_val = inf,
+    .neg_inf = -inf,
+    .escaped_string = "Hello \"World\" \\ \n \r \t \x41 \u{1f600}",
+    .char_escapes = '\n',
+    .keyword_key = .{
+        .@"const" = 1,
+        .@"pub" = 2,
+    },
+}

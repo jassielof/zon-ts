@@ -1,0 +1,15 @@
+{
+  "hex_int": 4292917950,
+  "binary_int": 45,
+  "octal_int": 493,
+  "hex_float": 13.0625,
+  "nan_val": "nan",
+  "inf_val": "inf",
+  "neg_inf": "-inf",
+  "escaped_string": "Hello \"World\" \\ \n \r \t A 😀",
+  "char_escapes": "\n",
+  "keyword_key": {
+    "const": 1,
+    "pub": 2
+  }
+}

@@ -1,0 +1,11 @@
+.{
+    .multiline_str = 
+        \\line one of the string
+        \\line two with escape-like chars \n \u{1234} (which are NOT resolved in multiline)
+        \\line three
+    ,
+    .nested_tuples = .{
+        .{ 1, 2 },
+        .{ 3, 4 },
+    },
+}
