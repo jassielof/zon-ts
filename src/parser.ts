@@ -1,7 +1,7 @@
 import { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
 import { CharLiteral, EnumLiteral, type ParseOptions } from "./types.ts";
 
-export function unescapeString(raw: string): string {
+function unescapeString(raw: string): string {
   let content = "";
   if (raw.startsWith('@"')) {
     content = raw.slice(2, -1);
@@ -148,7 +148,7 @@ function parseZigNumber(
   return val;
 }
 
-export class Parser {
+class Parser {
   private tokenizer: Tokenizer;
   private currentToken!: Token;
   private peekToken!: Token;

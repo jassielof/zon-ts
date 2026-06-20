@@ -1,5 +1,6 @@
 export { parse } from "./parser.ts";
 export { stringify } from "./serializer.ts";
+export { Tokenizer, type Token, TokenType } from "./tokenizer.ts";
 export {
   CharLiteral,
   EnumLiteral,

@@ -1,18 +1,20 @@
-export enum TokenType {
-  Period = "Period",
-  Equal = "Equal",
-  Comma = "Comma",
-  LBrace = "LBrace",
-  RBrace = "RBrace",
-  Minus = "Minus",
-  Plus = "Plus",
-  Identifier = "Identifier",
-  StringLiteral = "StringLiteral",
-  MultilineString = "MultilineString",
-  CharLiteral = "CharLiteral",
-  NumberLiteral = "NumberLiteral",
-  Eof = "Eof",
-}
+export const TokenType = {
+  Period: "Period",
+  Equal: "Equal",
+  Comma: "Comma",
+  LBrace: "LBrace",
+  RBrace: "RBrace",
+  Minus: "Minus",
+  Plus: "Plus",
+  Identifier: "Identifier",
+  StringLiteral: "StringLiteral",
+  MultilineString: "MultilineString",
+  CharLiteral: "CharLiteral",
+  NumberLiteral: "NumberLiteral",
+  Eof: "Eof",
+} as const;
+
+export type TokenType = typeof TokenType[keyof typeof TokenType];
 
 export interface Token {
   type: TokenType;
