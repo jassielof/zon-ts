@@ -2,21 +2,34 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  build:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Setup Deno
         uses: denoland/setup-deno@v2
-      - name: Build
-        run: deno task build
-  test:
+      - name: Check formatting
+        run: deno fmt --check
+      - name: Check linting
+        run: deno lint
+      - name: Check types
+        run: deno check
+  pack:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+      - name: Package
+        run: deno pack
+  test:
+    runs-on: [ubuntu-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
       - name: Setup Deno
         uses: denoland/setup-deno@v2
       - name: Run tests
-        run: deno task test
+        run: deno test --permission-set
