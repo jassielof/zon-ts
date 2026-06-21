@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "pack": "deno pack --permission-set --allow-all scripts/node.ts"
+    "pack": "deno run --allow-all scripts/node.ts"
   },
   "exclude": ["references/"],
   "imports": {
