@@ -25,7 +25,12 @@ jobs:
       - name: Package
         run: deno pack
   test:
-    runs-on: [ubuntu-latest, windows-latest]
+    name: Test on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7

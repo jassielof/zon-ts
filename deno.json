@@ -1,7 +1,10 @@
 {
-  "tasks": {},
+  "tasks": {
+    "pack": "deno pack --permission-set --allow-all scripts/node.ts"
+  },
   "exclude": ["references/"],
   "imports": {
+    "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
     "@std/assert": "jsr:@std/assert@1.0.19"
   },
   "test": {
@@ -10,8 +13,11 @@
       "write": true
     }
   },
+  "publish": {
+    "exclude": ["tests/**", "src/**/*.test.ts"]
+  },
   "exports": "./src/mod.ts",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "name": "@jassielof/zon",
   "version": "0.1.0"
 }
