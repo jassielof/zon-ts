@@ -70,11 +70,6 @@
     "dependencies": [
       "jsr:@deno/dnt@~0.42.3",
       "jsr:@std/assert@1.0.19"
-    ],
-    "packageJson": {
-      "dependencies": [
-        "npm:@deno/dnt@~0.42.3"
-      ]
-    }
+    ]
   }
 }
