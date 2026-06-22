@@ -23,7 +23,7 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
       - name: Package
-        run: deno pack
+        run: deno task pack
   test:
     name: Test on ${{ matrix.os }}
     strategy:
