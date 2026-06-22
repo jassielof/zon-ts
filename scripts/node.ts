@@ -31,9 +31,12 @@ await build({
     name: DENO_JSON.name,
     license: DENO_JSON.license,
     version: DENO_JSON.version,
-    scripts: {
-      pack: "deno task pack",
-      prepare: "pnpm run pack",
+    author: "Jassiel Ovando",
+    description:
+      "A TypeScript library for working with Zig Object Notation (ZON).",
+    repository: {
+      type: "git",
+      url: "https://github.com/jassielof/zon.git",
     },
   },
   postBuild() {

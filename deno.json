@@ -16,7 +16,12 @@
   "publish": {
     "exclude": ["tests/**", "src/**/*.test.ts"]
   },
-  "exports": "./src/mod.ts",
+  "exports": {
+    ".": "./src/mod.ts",
+    "./types": "./src/types.d.ts",
+    "./parse": "./src/parse.ts",
+    "./stringify": "./src/stringify.ts"
+  },
   "license": "MPL-2.0",
   "name": "@jassielof/zon",
   "version": "0.1.0"
