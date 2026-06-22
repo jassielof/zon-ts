@@ -53,7 +53,6 @@ export interface Token {
   col: number;
 }
 
-
 /**
  * A tokenizer for Zig Object Notation (ZON) input strings.
  */
@@ -534,7 +533,8 @@ export class Tokenizer {
    * @returns True if the character is a hexadecimal digit or underscore.
    */
   private isHexDigit(c: string): boolean {
-    return (c >= "0" && c <= "9") || (c >= "a" && c <= "f") || (c >= "A" && c <= "F") || c === "_";
+    return (c >= "0" && c <= "9") || (c >= "a" && c <= "f") ||
+      (c >= "A" && c <= "F") || c === "_";
   }
 
   /**
