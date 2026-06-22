@@ -2,6 +2,7 @@ import { CharLiteral, EnumLiteral } from "./types.ts";
 
 export { CharLiteral, EnumLiteral };
 
+/** Options for parsing ZON. */
 export interface ParseOptions {
   /**
    * How to represent enum literals.
@@ -28,6 +29,7 @@ export interface ParseOptions {
   bigint?: "bigint" | "number" | "string";
 }
 
+/** Represents a JSON-compatible ZON value. */
 export type ZonValue =
   | string
   | number
@@ -39,6 +41,7 @@ export type ZonValue =
   | ZonValue[]
   | { [key: string]: ZonValue };
 
+/** Options for stringifying ZON. */
 export interface StringifyOptions {
   /**
    * Adds indentation, white space, and line break characters to the return-value ZON text.
@@ -57,6 +60,8 @@ export interface StringifyOptions {
  * Represents the manifest file for a Zig project.
  *
  * See <https://codeberg.org/ziglang/zig/src/tag/0.16.0/doc/build.zig.zon.md>.
+ *
+ * @internal
  */
 export interface Manifest {
   name: string;
@@ -71,6 +76,8 @@ export interface Manifest {
  * Represents the environment output by the Zig compiler when invoked with `zig env`.
  *
  * See <https://ziglang.org/documentation/0.16.0/std/#std.zig.EnvVar>
+ *
+ * @internal
  */
 export interface Environment {
   zig_exe: string;
@@ -82,17 +89,17 @@ export interface Environment {
   env: Record<string, string | null>;
 }
 
+/** @internal */
 export type Dependency = PathDependency | PackageDependency;
 
-/**
- * @ignore
- */
+/** @internal */
 export interface PathDependency {
   path: string;
   url?: never;
   hash?: never;
 }
 
+/** @internal */
 export interface PackageDependency {
   url: string;
   hash: string;
