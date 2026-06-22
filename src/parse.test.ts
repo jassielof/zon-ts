@@ -1,5 +1,5 @@
 import { assertEquals, assertThrows } from "@std/assert";
-import { parse } from "./parser.ts";
+import { parse } from "./parse.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 
 Deno.test("Parser - Primitives", () => {

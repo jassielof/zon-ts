@@ -1,5 +1,5 @@
 import { assertEquals } from "@std/assert";
-import { stringify } from "./serializer.ts";
+import { stringify } from "./stringify.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 
 Deno.test("Serializer - Basic", () => {
