@@ -1,5 +1,5 @@
 import { CharLiteral, EnumLiteral } from "./types.ts";
-import type { StringifyOptions } from "./types.d.ts";
+import type { StringifyOptions } from "./types.ts";
 
 const ZIG_KEYWORDS = new Set([
   "addrspace",
@@ -61,8 +61,11 @@ function formatKey(key: string): string {
     let escaped = "";
     for (let i = 0; i < key.length; i++) {
       const c = key[i];
+      const code = key.charCodeAt(i);
       if (c === "\\" || c === '"') {
         escaped += "\\" + c;
+      } else if (code < 0x20 || code === 0x7f) {
+        escaped += "\\x" + code.toString(16).padStart(2, "0");
       } else {
         escaped += c;
       }

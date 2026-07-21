@@ -24,7 +24,6 @@ function toJSONString(val: unknown): string {
 }
 
 Deno.test("Integration - Specific Assertions", async () => {
-  // Explicit assertions for build.zig.zon
   // deno-lint-ignore no-explicit-any
   const buildZon = parse<any>(
     await Deno.readTextFile("./tests/fixtures/build.zig.zon"),
@@ -34,7 +33,6 @@ Deno.test("Integration - Specific Assertions", async () => {
   assertEquals(buildZon.fingerprint, 17464025155399633382n);
   assertEquals(buildZon.dependencies.fangz.path, "dependencies/fangz");
 
-  // Explicit assertions for env.zon
   // deno-lint-ignore no-explicit-any
   const envZon = parse<any>(
     await Deno.readTextFile("./tests/fixtures/env.zon"),
@@ -56,11 +54,13 @@ Deno.test("Integration - Dynamic Fixtures Roundtrip", async () => {
       const zonText = await Deno.readTextFile(zonPath);
       const parsed = parse(zonText);
 
-      // Write JSON representation
-      const jsonText = toJSONString(parsed);
-      await Deno.writeTextFile(jsonPath, jsonText + "\n");
+      const expectedJson = await Deno.readTextFile(jsonPath);
+      assertEquals(
+        toJSONString(parsed) + "\n",
+        expectedJson,
+        `JSON mismatch for fixture: ${zonName}`,
+      );
 
-      // Roundtrip
       const stringifiedZon = stringify(parsed, { space: 4 });
       const reParsed = parse(stringifiedZon);
 

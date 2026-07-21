@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "pack": "deno run --allow-all scripts/node.ts"
+    "pack": "deno run --allow-all scripts/node.ts",
+    "test": "deno test --permission-set"
   },
   "exclude": ["references/", "node/"],
   "imports": {
@@ -18,7 +19,7 @@
   },
   "exports": {
     ".": "./src/mod.ts",
-    "./types": "./src/types.d.ts",
+    "./types": "./src/types.ts",
     "./parse": "./src/parse.ts",
     "./stringify": "./src/stringify.ts"
   },

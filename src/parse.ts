@@ -1,6 +1,6 @@
 import { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
-import type { ParseOptions } from "./types.d.ts";
+import type { ParseOptions } from "./types.ts";
 
 function unescapeString(raw: string): string {
   let content = "";
