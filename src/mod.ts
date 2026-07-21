@@ -4,8 +4,8 @@ export { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
 export {
   CharLiteral,
   type Dependency,
-  type Environment,
   EnumLiteral,
+  type Environment,
   type Manifest,
   type PackageDependency,
   type ParseOptions,

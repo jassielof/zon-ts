@@ -1,18 +1,13 @@
 {
   "tasks": {
     "pack": "deno run --allow-all scripts/node.ts",
-    "test": "deno test --permission-set"
+    "test": "deno test --allow-read",
+    "check": "deno check src/mod.ts && deno lint"
   },
   "exclude": ["references/", "node/"],
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.42.3",
     "@std/assert": "jsr:@std/assert@1.0.19"
-  },
-  "test": {
-    "permissions": {
-      "read": true,
-      "write": true
-    }
   },
   "publish": {
     "exclude": ["tests/**", "src/**/*.test.ts"]

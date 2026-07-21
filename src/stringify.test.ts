@@ -1,4 +1,4 @@
-import { assertEquals } from "@std/assert";
+import { assertEquals, assertThrows } from "@std/assert";
 import { stringify } from "./stringify.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 
@@ -11,6 +11,7 @@ Deno.test("Serializer - Basic", () => {
   assertEquals(stringify("hello"), '"hello"');
   assertEquals(stringify(new EnumLiteral("docent")), ".docent");
   assertEquals(stringify(new CharLiteral("\n")), "'\\n'");
+  assertThrows(() => new CharLiteral("ab"));
 });
 
 Deno.test("Serializer - Structs and Arrays", () => {

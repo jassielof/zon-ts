@@ -26,6 +26,15 @@ export class CharLiteral {
   public readonly value: string;
 
   constructor(value: string) {
+    const codePoint = value.codePointAt(0);
+    if (
+      Array.from(value).length !== 1 || codePoint === undefined ||
+      (codePoint >= 0xd800 && codePoint <= 0xdfff)
+    ) {
+      throw new TypeError(
+        "CharLiteral requires exactly one Unicode scalar value",
+      );
+    }
     this.value = value;
   }
 
@@ -98,11 +107,12 @@ export interface StringifyOptions {
  * See <https://codeberg.org/ziglang/zig/src/tag/0.16.0/doc/build.zig.zon.md>.
  */
 export interface Manifest {
-  name: string;
+  name: string | EnumLiteral;
   version: string;
-  fingerprint: string | bigint;
+  fingerprint: number | bigint;
   dependencies: Record<string, Dependency>;
-  minimumZigVersion: string;
+  minimum_zig_version?: string;
+  mach_zig_version?: string;
   paths: string[];
 }
 

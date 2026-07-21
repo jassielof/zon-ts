@@ -69,7 +69,10 @@ function unescapeString(raw: string): string {
             throw new Error(`Invalid unicode escape sequence: \\u{${hex}}`);
           }
           const codePoint = parseInt(hex, 16);
-          if (codePoint > 0x10ffff) {
+          if (
+            codePoint > 0x10ffff ||
+            (codePoint >= 0xd800 && codePoint <= 0xdfff)
+          ) {
             throw new Error(`Unicode code point out of range: \\u{${hex}}`);
           }
           result += String.fromCodePoint(codePoint);
@@ -222,7 +225,19 @@ class Parser {
 
         this.consume(TokenType.Equal);
         const val = this.parseValue();
-        (result as Record<string, unknown>)[fieldName] = val;
+        if (Object.hasOwn(result as Record<string, unknown>, fieldName)) {
+          throw new Error(
+            `Duplicate field '${fieldName}' at line ${fieldToken.line}, col ${fieldToken.col}`,
+          );
+        }
+        // defineProperty keeps special names such as `__proto__` as ordinary
+        // ZON fields instead of mutating the parsed object's prototype.
+        Object.defineProperty(result as Record<string, unknown>, fieldName, {
+          value: val,
+          enumerable: true,
+          configurable: true,
+          writable: true,
+        });
       } else {
         if (result === undefined) {
           result = [];
@@ -303,10 +318,16 @@ class Parser {
         const val = unescapeString(tok.value);
         this.advance();
 
+        if (Array.from(val).length !== 1) {
+          throw new Error(
+            `Character literal must contain exactly one Unicode code point at line ${tok.line}, col ${tok.col}`,
+          );
+        }
+
         if (this.options.charLiteral === "string") {
           return val;
         } else if (this.options.charLiteral === "number") {
-          return val.charCodeAt(0);
+          return val.codePointAt(0);
         } else {
           return new CharLiteral(val);
         }

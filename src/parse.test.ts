@@ -126,4 +126,22 @@ Deno.test("Parser - Syntax Errors", () => {
   assertThrows(() => parse(".{ .name = }"));
   assertThrows(() => parse(".{ .name = 123"));
   assertThrows(() => parse(".{ 1, 2, .name = 3 }"));
+  assertThrows(() => parse(".{ .name = 1, .name = 2 }"));
+});
+
+Deno.test("Parser - special field names cannot mutate prototypes", () => {
+  const parsed = parse<Record<string, unknown>>(
+    `.{ .@"__proto__" = .{ .polluted = true }, .@"constructor" = 1 }`,
+  );
+  assertEquals(Object.getPrototypeOf(parsed), Object.prototype);
+  assertEquals(Object.hasOwn(parsed, "__proto__"), true);
+  assertEquals(({} as { polluted?: boolean }).polluted, undefined);
+  assertEquals(parsed["constructor"], 1);
+});
+
+Deno.test("Parser - character number uses a Unicode code point", () => {
+  assertEquals(parse("'😀'", { charLiteral: "number" }), 0x1f600);
+  assertThrows(() => parse("''"));
+  assertThrows(() => parse("'ab'"));
+  assertThrows(() => parse("'\\u{d800}'"));
 });
