@@ -8,6 +8,7 @@ await build({
   entryPoints: ["./src/mod.ts"],
   outDir: "./node",
   test: false,
+  typeCheck: false,
   skipNpmInstall: true,
   shims: {
     deno: false,
@@ -15,6 +16,7 @@ await build({
   compilerOptions: {
     lib: ["ESNext", "DOM"],
     target: "Latest",
+    skipLibCheck: true,
   },
   package: {
     name: DENO_JSON.name,
@@ -22,7 +24,7 @@ await build({
     version: DENO_JSON.version,
     author: "Jassiel Ovando",
     description:
-      "A TypeScript library for working with Zig Object Notation (ZON).",
+      "A TypeScript library for de/serializing Zig Object Notation (ZON).",
     repository: {
       type: "git",
       url: "https://github.com/jassielof/zon-ts.git",

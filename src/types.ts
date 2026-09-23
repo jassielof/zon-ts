@@ -107,12 +107,19 @@ export interface StringifyOptions {
  * See <https://codeberg.org/ziglang/zig/src/tag/0.16.0/doc/build.zig.zon.md>.
  */
 export interface Manifest {
+  /** The package name. */
   name: string | EnumLiteral;
+  /** The semver version of the package. */
   version: string;
+  /** The package fingerprint. */
   fingerprint: number | bigint;
+  /** Package dependencies mapping. */
   dependencies: Record<string, Dependency>;
+  /** Minimum Zig compiler version required. */
   minimum_zig_version?: string;
+  /** Mach engine Zig version required, if applicable. */
   mach_zig_version?: string;
+  /** List of paths included in the package. */
   paths: string[];
 }
 
@@ -122,25 +129,44 @@ export interface Manifest {
  * See <https://ziglang.org/documentation/0.16.0/std/#std.zig.EnvVar>
  */
 export interface Environment {
+  /** Path to the Zig executable. */
   zig_exe: string;
+  /** Path to the Zig lib directory. */
   lib_dir: string;
+  /** Path to the Zig standard library directory. */
   std_dir: string;
+  /** Path to the global Zig cache directory. */
   global_cache_dir: string;
+  /** The Zig compiler version string. */
   version: string;
+  /** The target triple string. */
   target: string;
+  /** Map of environment variables reported by `zig env`. */
   env: Record<string, string | null>;
 }
 
+/**
+ * Represents a dependency in a Zig package manifest (`build.zig.zon`).
+ */
 export type Dependency = PathDependency | PackageDependency;
 
+/**
+ * A local path-based dependency in `build.zig.zon`.
+ */
 export interface PathDependency {
+  /** Relative or absolute filesystem path to the dependency. */
   path: string;
   url?: never;
   hash?: never;
 }
 
+/**
+ * A remote URL/hash package dependency in `build.zig.zon`.
+ */
 export interface PackageDependency {
+  /** URL to the dependency tarball or repository. */
   url: string;
+  /** Expected cryptographic package multihash. */
   hash: string;
   path?: never;
 }

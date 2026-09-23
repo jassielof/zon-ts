@@ -417,7 +417,7 @@ class Parser {
 }
 
 /**
- * Parses a Zig Object Notation (ZON) string into a JavaScript/TypeScript value.
+ * Parses a Zig Object Notation (ZON) string into a value.
  *
  * @param input The ZON string to parse.
  * @param options Parsing configuration options.
