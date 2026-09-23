@@ -151,7 +151,7 @@ function escapeChar(char: string): string {
  * @param options Stringification options.
  * @returns The ZON string representation.
  *
- * @example
+ * @example Basic compact serialization
  * ```ts
  * import { assertEquals } from "@std/assert";
  * import { stringify } from "./stringify.ts";
@@ -159,6 +159,49 @@ function escapeChar(char: string): string {
  *
  * const zon = stringify({ name: new EnumLiteral("docent"), version: "1.0.0" });
  * assertEquals(zon, ".{.name=.docent,.version=\"1.0.0\"}");
+ * ```
+ *
+ * @example Formatted output with indentation
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { stringify } from "./stringify.ts";
+ *
+ * const data = {
+ *   name: "example",
+ *   paths: ["src", "build.zig"],
+ * };
+ * const zon = stringify(data, { space: 4 });
+ * assertEquals(zon, `.{
+ *     .name = "example",
+ *     .paths = .{
+ *         "src",
+ *         "build.zig",
+ *     },
+ * }`);
+ * ```
+ *
+ * @example Escaping Zig keywords and special field names
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { stringify } from "./stringify.ts";
+ *
+ * const zon = stringify({ const: true, "kebab-case": 42 });
+ * assertEquals(zon, `.{.@"const"=true,.@"kebab-case"=42}`);
+ * ```
+ *
+ * @example Filtering and transforming with a replacer function
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { stringify } from "./stringify.ts";
+ *
+ * const data = { a: 1, b: 2, secret: "hidden" };
+ * const zon = stringify(data, {
+ *   replacer(key, value) {
+ *     if (key === "secret") return undefined;
+ *     return value;
+ *   },
+ * });
+ * assertEquals(zon, ".{.a=1,.b=2}");
  * ```
  */
 export function stringify(

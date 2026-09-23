@@ -429,7 +429,7 @@ class Parser {
  * @param options Parsing configuration options.
  * @returns The parsed JavaScript/TypeScript value.
  *
- * @example
+ * @example Parsing a struct into an object
  * ```ts
  * import { assertEquals } from "@std/assert";
  * import { parse } from "./parse.ts";
@@ -439,13 +439,45 @@ class Parser {
  * assertEquals(result, { name: new EnumLiteral("docent"), version: "1.0.0" });
  * ```
  *
- * @example
+ * @example Parsing a tuple/array
  * ```ts
  * import { assertEquals } from "@std/assert";
  * import { parse } from "./parse.ts";
  *
  * const array = parse(".{ 1, 2, 3 }");
  * assertEquals(array, [1, 2, 3]);
+ * ```
+ *
+ * @example Using custom parse options for enums and characters
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { parse } from "./parse.ts";
+ *
+ * const zon = ".{ .target = .x86_64, .delim = '/' }";
+ * const parsed = parse(zon, { enumLiteral: "string", charLiteral: "string" });
+ * assertEquals(parsed, { target: "x86_64", delim: "/" });
+ * ```
+ *
+ * @example Type-safe parsing with a generic type parameter
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { parse } from "./parse.ts";
+ *
+ * interface PackageInfo {
+ *   name: string;
+ *   version: string;
+ *   paths: string[];
+ * }
+ *
+ * const zon = `.{
+ *   .name = "my_pkg",
+ *   .version = "0.1.0",
+ *   .paths = .{ "src", "README.md" },
+ * }`;
+ *
+ * const pkg = parse<PackageInfo>(zon);
+ * assertEquals(pkg.name, "my_pkg");
+ * assertEquals(pkg.paths, ["src", "README.md"]);
  * ```
  */
 export function parse<T = unknown>(input: string, options?: ParseOptions): T {
