@@ -79,3 +79,42 @@ test("HexLiteral roundtrip", () => {
   const output = stringify(parsed);
   assert.equal(output, ".{.fingerprint=0xf25cae59b814c9e6}");
 });
+
+test("Comment preservation roundtrip", () => {
+  const original = `//! Package manifest for docent
+.{
+    // Project name
+    .name = .docent, // trailing name
+    /// Semantic version
+    .version = "0.0.0",
+    .fingerprint = 0xf25cae59b814c9e6,
+    .dependencies = .{
+        // Main dependency
+        .fangz = .{
+            .path = "dependencies/fangz",
+        },
+    },
+    .paths = .{
+        // Path files
+        "build.zig",
+        "README.md", // markdown docs
+        // End of paths
+    },
+    // End of manifest
+}`;
+
+  const parsed = parse(original, {
+    preserveComments: true,
+    hexLiteral: "class",
+  });
+  assert.equal(parsed.value.name.value, "docent");
+  assert.deepEqual(parsed.comments.fileDoc, [" Package manifest for docent"]);
+  assert.equal(
+    parsed.comments.nodes.get(".name").trailing.text,
+    " trailing name",
+  );
+
+  const formatted = stringify(parsed, { space: 4 });
+  assert.equal(formatted, original);
+});
+

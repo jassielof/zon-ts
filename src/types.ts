@@ -190,6 +190,70 @@ export interface ParseOptions {
    * @default "bigint"
    */
   bigint?: "bigint" | "number" | "string";
+
+  /**
+   * Whether to preserve comments during parsing.
+   * - `false` (default): comments are skipped with zero overhead.
+   * - `true`: all comments (`//!`, `///`, `//`) are preserved in a {@link CommentTable}.
+   * - An object of {@link PreserveCommentsOptions} to selectively preserve specific comment kinds.
+   *
+   * @default false
+   */
+  preserveComments?: boolean | PreserveCommentsOptions;
+}
+
+/**
+ * A comment within a ZON document.
+ */
+export interface Comment {
+  /** The kind of comment: normal line comment (`//`) or doc comment (`///`). */
+  kind: "line" | "doc";
+  /** The text content of the comment (excluding the leading slashes). */
+  text: string;
+}
+
+/**
+ * Comments associated with a structural path in a ZON document.
+ */
+export interface NodeComments {
+  /** Comments immediately preceding the node, in order. */
+  leading?: Comment[];
+  /** Same-line comment appearing after the node (and after any comma). */
+  trailing?: Comment;
+  /** Comments appearing inside an empty container or before the closing brace. */
+  inner?: Comment[];
+}
+
+/**
+ * Table storing preserved comments mapped by their structural path.
+ */
+export interface CommentTable {
+  /** File-level container doc comments (`//!`). */
+  fileDoc: string[];
+  /** Map of structural path keys to node comments (e.g. `""`, `".name"`, `".dependencies.fangz"`, `".paths[0]"`). */
+  nodes: Map<string, NodeComments>;
+}
+
+/**
+ * Granular options for filtering which comments to preserve.
+ */
+export type PreserveCommentsOptions = {
+  /** Whether to preserve standard line comments (`//`). Defaults to true. */
+  normal?: boolean;
+  /** Whether to preserve doc comments (`///`). Defaults to true. */
+  doc?: boolean;
+  /** Whether to preserve file-level doc comments (`//!`). Defaults to true. */
+  fileDoc?: boolean;
+};
+
+/**
+ * Result returned by `parse()` when `preserveComments` is enabled.
+ */
+export interface ParseResult<T = unknown> {
+  /** The parsed value tree. */
+  value: T;
+  /** The table of preserved comments keyed by structural path. */
+  comments: CommentTable;
 }
 
 /** Represents a JSON-compatible ZON value. */
@@ -225,6 +289,11 @@ export interface StringifyOptions {
    * @returns The transformed value, or `undefined` to omit the property.
    */
   replacer?: (this: unknown, key: string, value: unknown) => unknown;
+
+  /**
+   * Preserved comments to emit back into the serialized ZON text.
+   */
+  comments?: CommentTable;
 }
 
 /**

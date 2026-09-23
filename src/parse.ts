@@ -6,9 +6,20 @@
  * @module
  */
 
-import { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
+import {
+  type RawComment,
+  type Token,
+  Tokenizer,
+  TokenType,
+} from "./tokenizer.ts";
 import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
-import type { ParseOptions } from "./types.ts";
+import type {
+  Comment,
+  CommentTable,
+  ParseOptions,
+  ParseResult,
+  PreserveCommentsOptions,
+} from "./types.ts";
 
 function unescapeString(raw: string): string {
   let content = "";
@@ -174,9 +185,13 @@ class Parser {
   private currentToken!: Token;
   private peekToken!: Token;
   private options: ParseOptions;
+  private commentTable: CommentTable = {
+    fileDoc: [],
+    nodes: new Map(),
+  };
 
   constructor(input: string, options: ParseOptions = {}) {
-    this.tokenizer = new Tokenizer(input);
+    this.tokenizer = new Tokenizer(input, options.preserveComments);
     this.options = options;
     this.advance();
     this.advance();
@@ -208,21 +223,97 @@ class Parser {
     return tok;
   }
 
-  private parseStructLiteral(): unknown {
+  private attachComments(
+    path: string,
+    type: "leading" | "inner",
+    comments: RawComment[],
+  ): void {
+    if (!this.options.preserveComments) return;
+    const nonFile: Comment[] = [];
+    for (const c of comments) {
+      if (c.kind === "file") {
+        this.commentTable.fileDoc.push(c.text);
+      } else {
+        nonFile.push({ kind: c.kind, text: c.text });
+      }
+    }
+    if (nonFile.length === 0) return;
+
+    const existing = this.commentTable.nodes.get(path) ?? {};
+    if (type === "leading") {
+      existing.leading = [...(existing.leading ?? []), ...nonFile];
+    } else {
+      existing.inner = [...(existing.inner ?? []), ...nonFile];
+    }
+    this.commentTable.nodes.set(path, existing);
+  }
+
+  private attachTrailingComment(path: string, comment: RawComment): void {
+    if (!this.options.preserveComments) return;
+    if (comment.kind === "file") {
+      this.commentTable.fileDoc.push(comment.text);
+      return;
+    }
+    const existing = this.commentTable.nodes.get(path) ?? {};
+    existing.trailing = { kind: comment.kind, text: comment.text };
+    this.commentTable.nodes.set(path, existing);
+  }
+
+  public finalizeComments(): void {
+    if (!this.options.preserveComments) return;
+    if (this.currentToken.trailingComment) {
+      this.attachTrailingComment("", this.currentToken.trailingComment);
+    }
+    if (this.currentToken.leadingComments) {
+      for (const c of this.currentToken.leadingComments) {
+        if (c.kind === "file") {
+          this.commentTable.fileDoc.push(c.text);
+        } else {
+          const existing = this.commentTable.nodes.get("") ?? {};
+          existing.inner = [
+            ...(existing.inner ?? []),
+            { kind: c.kind, text: c.text },
+          ];
+          this.commentTable.nodes.set("", existing);
+        }
+      }
+    }
+  }
+
+  public getCommentTable(): CommentTable {
+    return this.commentTable;
+  }
+
+  private parseStructLiteral(currentPath: string = ""): unknown {
     this.consume(TokenType.LBrace);
 
     if (this.currentToken.type === TokenType.RBrace) {
+      if (this.currentToken.leadingComments) {
+        this.attachComments(
+          currentPath,
+          "inner",
+          this.currentToken.leadingComments,
+        );
+      }
       this.consume(TokenType.RBrace);
       return []; // Return empty array by default for .{}
     }
 
     let result: Record<string, unknown> | unknown[] | undefined = undefined;
     let isArray = false;
+    let lastChildPath: string | undefined = undefined;
 
     while (
       (this.currentToken.type as TokenType) !== TokenType.RBrace &&
       this.currentToken.type !== TokenType.Eof
     ) {
+      if (lastChildPath !== undefined && this.currentToken.trailingComment) {
+        this.attachTrailingComment(
+          lastChildPath,
+          this.currentToken.trailingComment,
+        );
+      }
+
       if (
         this.currentToken.type === TokenType.Period &&
         this.peekToken.type !== TokenType.LBrace
@@ -236,12 +327,31 @@ class Parser {
           );
         }
 
+        const periodTok = this.currentToken;
         this.consume(TokenType.Period);
         const fieldToken = this.consume(TokenType.Identifier);
         const fieldName = unescapeString(fieldToken.value);
+        const childPath = currentPath
+          ? `${currentPath}.${fieldName}`
+          : `.${fieldName}`;
+        lastChildPath = childPath;
+
+        if (periodTok.leadingComments) {
+          this.attachComments(childPath, "leading", periodTok.leadingComments);
+        }
+        if (fieldToken.leadingComments) {
+          this.attachComments(childPath, "leading", fieldToken.leadingComments);
+        }
 
         this.consume(TokenType.Equal);
-        const val = this.parseValue();
+        if (this.currentToken.leadingComments) {
+          this.attachComments(
+            childPath,
+            "leading",
+            this.currentToken.leadingComments,
+          );
+        }
+        const val = this.parseValue(childPath);
         if (Object.hasOwn(result as Record<string, unknown>, fieldName)) {
           throw new Error(
             `Duplicate field '${fieldName}' at line ${fieldToken.line}, col ${fieldToken.col}`,
@@ -265,7 +375,19 @@ class Parser {
           );
         }
 
-        const val = this.parseValue();
+        const elemIndex = (result as unknown[]).length;
+        const childPath = `${currentPath}[${elemIndex}]`;
+        lastChildPath = childPath;
+
+        if (this.currentToken.leadingComments) {
+          this.attachComments(
+            childPath,
+            "leading",
+            this.currentToken.leadingComments,
+          );
+        }
+
+        const val = this.parseValue(childPath);
         (result as unknown[]).push(val);
       }
 
@@ -278,18 +400,36 @@ class Parser {
       }
     }
 
+    if (lastChildPath !== undefined && this.currentToken.trailingComment) {
+      this.attachTrailingComment(
+        lastChildPath,
+        this.currentToken.trailingComment,
+      );
+    }
+    if (this.currentToken.leadingComments) {
+      this.attachComments(
+        currentPath,
+        "inner",
+        this.currentToken.leadingComments,
+      );
+    }
+
     this.consume(TokenType.RBrace);
     return result;
   }
 
-  public parseValue(): unknown {
+  public parseValue(currentPath: string = ""): unknown {
     const tok = this.currentToken;
+
+    if (currentPath === "" && tok.leadingComments) {
+      this.attachComments("", "leading", tok.leadingComments);
+    }
 
     switch (tok.type) {
       case TokenType.Period: {
         if (this.peekToken.type === TokenType.LBrace) {
           this.consume(TokenType.Period);
-          return this.parseStructLiteral();
+          return this.parseStructLiteral(currentPath);
         } else if (this.peekToken.type === TokenType.Identifier) {
           this.consume(TokenType.Period);
           const identTok = this.consume(TokenType.Identifier);
@@ -445,12 +585,36 @@ class Parser {
 }
 
 /**
+ * Parses a Zig Object Notation (ZON) string into a value, preserving comments into a {@link CommentTable}.
+ *
+ * @template T The expected type of the parsed value.
+ * @param input The ZON string to parse.
+ * @param options Parsing options with `preserveComments` enabled.
+ * @returns A {@link ParseResult} containing the parsed value and preserved comments.
+ */
+export function parse<T = unknown>(
+  input: string,
+  options: ParseOptions & { preserveComments: true | PreserveCommentsOptions },
+): ParseResult<T>;
+/**
  * Parses a Zig Object Notation (ZON) string into a value.
  *
  * @template T The expected type of the parsed value.
  * @param input The ZON string to parse.
  * @param options Parsing configuration options.
  * @returns The parsed value as type `T`.
+ */
+export function parse<T = unknown>(
+  input: string,
+  options?: ParseOptions & { preserveComments?: false },
+): T;
+/**
+ * Parses a Zig Object Notation (ZON) string into a value or a {@link ParseResult}.
+ *
+ * @template T The expected type of the parsed value.
+ * @param input The ZON string to parse.
+ * @param options Parsing configuration options.
+ * @returns The parsed value as type `T`, or a {@link ParseResult} if `preserveComments` is enabled.
  * @throws {Error} If the ZON input contains invalid syntax, unexpected tokens, or duplicate struct fields.
  *
  * @example Parsing a struct into an object
@@ -461,6 +625,22 @@ class Parser {
  *
  * const result = parse(".{ .name = .docent, .version = \"1.0.0\" }");
  * assertEquals(result, { name: new EnumLiteral("docent"), version: "1.0.0" });
+ * ```
+ *
+ * @example Parsing with comment preservation
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { parse } from "./parse.ts";
+ *
+ * const zon = `//! File header doc
+ * .{
+ *     // Field comment
+ *     .name = "zon",
+ * }`;
+ * const result = parse(zon, { preserveComments: true });
+ * assertEquals(result.value, { name: "zon" });
+ * assertEquals(result.comments.fileDoc, [" File header doc"]);
+ * assertEquals(result.comments.nodes.get(".name")?.leading?.[0]?.text, " Field comment");
  * ```
  *
  * @example Parsing a tuple/array
@@ -504,13 +684,23 @@ class Parser {
  * assertEquals(pkg.paths, ["src", "README.md"]);
  * ```
  */
-export function parse<T = unknown>(input: string, options?: ParseOptions): T {
+export function parse<T = unknown>(
+  input: string,
+  options?: ParseOptions,
+): T | ParseResult<T> {
   const parser = new Parser(input, options);
-  const result = parser.parseValue();
+  const result = parser.parseValue("");
   if (parser.getCurrentTokenType() !== TokenType.Eof) {
     throw new Error(
       `Unexpected tokens after expression at line ${parser.getCurrentTokenLine()}`,
     );
   }
-  return result as unknown as T;
+  if (options?.preserveComments) {
+    parser.finalizeComments();
+    return {
+      value: result as T,
+      comments: parser.getCommentTable(),
+    };
+  }
+  return result as T;
 }

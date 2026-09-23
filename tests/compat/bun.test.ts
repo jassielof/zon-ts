@@ -78,4 +78,42 @@ describe("Built Package Artifact", () => {
     expect(hex).toBeInstanceOf(packaged.HexLiteral);
     expect(packaged.stringify(hex)).toBe("0xf25cae59b814c9e6");
   });
+
+  test("preserves comments in built package artifact", () => {
+    const original = `//! Package manifest for docent
+.{
+    // Project name
+    .name = .docent, // trailing name
+    /// Semantic version
+    .version = "0.0.0",
+    .fingerprint = 0xf25cae59b814c9e6,
+    .dependencies = .{
+        // Main dependency
+        .fangz = .{
+            .path = "dependencies/fangz",
+        },
+    },
+    .paths = .{
+        // Path files
+        "build.zig",
+        "README.md", // markdown docs
+        // End of paths
+    },
+    // End of manifest
+}`;
+
+    const parsed = packaged.parse(original, {
+      preserveComments: true,
+      hexLiteral: "class",
+    });
+    expect(parsed.value.name.value).toBe("docent");
+    expect(parsed.comments.fileDoc).toEqual([" Package manifest for docent"]);
+    expect(parsed.comments.nodes.get(".name").trailing.text).toBe(
+      " trailing name",
+    );
+
+    const formatted = packaged.stringify(parsed, { space: 4 });
+    expect(formatted).toBe(original);
+  });
 });
+

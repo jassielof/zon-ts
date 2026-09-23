@@ -56,6 +56,21 @@
  * assertEquals(stringify(data), ".{.mode=.release,.symbol='Z'}");
  * ```
  *
+ * @example Preserving comments across parse and stringify
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { parse, stringify } from "@jassiel/zon";
+ *
+ * const source = `//! Package manifest
+ * .{
+ *     // Project name
+ *     .name = "zon",
+ * }`;
+ * const result = parse(source, { preserveComments: true });
+ * const output = stringify(result, { space: 4 });
+ * assertEquals(output, source);
+ * ```
+ *
  * @module
  */
 
@@ -64,15 +79,20 @@ export { stringify } from "./stringify.ts";
 export { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
 export {
   CharLiteral,
+  type Comment,
+  type CommentTable,
   type Dependency,
   EnumLiteral,
   type Environment,
   type EnvVar,
   HexLiteral,
   type Manifest,
+  type NodeComments,
   type PackageDependency,
   type ParseOptions,
+  type ParseResult,
   type PathDependency,
+  type PreserveCommentsOptions,
   type StringifyOptions,
   type ZonValue,
 } from "./types.ts";

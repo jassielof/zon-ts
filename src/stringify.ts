@@ -7,7 +7,7 @@
  */
 
 import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
-import type { StringifyOptions } from "./types.ts";
+import type { Comment, ParseResult, StringifyOptions } from "./types.ts";
 
 const ZIG_KEYWORDS = new Set([
   "addrspace",
@@ -205,6 +205,22 @@ function escapeChar(char: string): string {
  * });
  * assertEquals(zon, ".{.a=1,.b=2}");
  * ```
+ *
+ * @example Preserving comments during stringification
+ * ```ts
+ * import { assertEquals } from "@std/assert";
+ * import { parse } from "./parse.ts";
+ * import { stringify } from "./stringify.ts";
+ *
+ * const zon = `//! Package manifest
+ * .{
+ *     // Project name
+ *     .name = "zon",
+ * }`;
+ * const parsed = parse(zon, { preserveComments: true });
+ * const formatted = stringify(parsed, { space: 4 });
+ * assertEquals(formatted, zon);
+ * ```
  */
 export function stringify(
   value: unknown,
@@ -220,9 +236,32 @@ export function stringify(
 
   const isPretty = indentStr.length > 0;
 
+  let rootValue = value;
+  let commentsTable = options.comments;
+  if (
+    rootValue &&
+    typeof rootValue === "object" &&
+    "value" in rootValue &&
+    "comments" in rootValue &&
+    (rootValue as ParseResult).comments &&
+    Array.isArray((rootValue as ParseResult).comments.fileDoc) &&
+    (rootValue as ParseResult).comments.nodes instanceof Map
+  ) {
+    if (!commentsTable) {
+      commentsTable = (rootValue as ParseResult).comments;
+    }
+    rootValue = (rootValue as ParseResult).value;
+  }
+
+  function formatCommentLine(c: Comment): string {
+    const prefix = c.kind === "doc" ? "///" : "//";
+    return prefix + c.text;
+  }
+
   function run(
     val: unknown,
     currentIndent: string,
+    currentPath: string = "",
   ): string {
     if (val === null || val === undefined) {
       return "null";
@@ -260,37 +299,86 @@ export function stringify(
     }
 
     if (Array.isArray(val)) {
+      const nodeComments = commentsTable?.nodes.get(currentPath);
       if (val.length === 0) {
+        if (isPretty && nodeComments?.inner && nodeComments.inner.length > 0) {
+          const nextIndent = currentIndent + indentStr;
+          const innerLines = nodeComments.inner.map((c) =>
+            nextIndent + formatCommentLine(c)
+          );
+          return `.{\n` + innerLines.join("\n") + `\n` + currentIndent + `}`;
+        }
         return ".{}";
       }
+
       const nextIndent = isPretty ? currentIndent + indentStr : "";
-      const items = val.map((item, i) => {
-        let currentItem = item;
-        if (
-          currentItem &&
-          typeof (currentItem as { toJSON?: () => unknown }).toJSON ===
-            "function" &&
-          !(currentItem instanceof EnumLiteral) &&
-          !(currentItem instanceof CharLiteral) &&
-          !(currentItem instanceof HexLiteral)
-        ) {
-          currentItem = (currentItem as { toJSON: () => unknown }).toJSON();
-        }
-        let replaced = currentItem;
-        if (replacer) {
-          replaced = replacer.call(val, String(i), currentItem);
-        }
-        return run(replaced, nextIndent);
-      });
       if (isPretty) {
-        return `.{\n` + nextIndent + items.join(",\n" + nextIndent) + `,\n` +
-          currentIndent + `}`;
+        let out = ".{\n";
+        for (let i = 0; i < val.length; i++) {
+          const elemPath = `${currentPath}[${i}]`;
+          const elemComments = commentsTable?.nodes.get(elemPath);
+
+          if (elemComments?.leading && elemComments.leading.length > 0) {
+            for (const lc of elemComments.leading) {
+              out += nextIndent + formatCommentLine(lc) + "\n";
+            }
+          }
+
+          let currentItem = val[i];
+          if (
+            currentItem &&
+            typeof (currentItem as { toJSON?: () => unknown }).toJSON ===
+              "function" &&
+            !(currentItem instanceof EnumLiteral) &&
+            !(currentItem instanceof CharLiteral) &&
+            !(currentItem instanceof HexLiteral)
+          ) {
+            currentItem = (currentItem as { toJSON: () => unknown }).toJSON();
+          }
+          let replaced = currentItem;
+          if (replacer) {
+            replaced = replacer.call(val, String(i), currentItem);
+          }
+          const itemVal = run(replaced, nextIndent, elemPath);
+          out += nextIndent + itemVal + ",";
+          if (elemComments?.trailing) {
+            out += " " + formatCommentLine(elemComments.trailing);
+          }
+          out += "\n";
+        }
+
+        if (nodeComments?.inner && nodeComments.inner.length > 0) {
+          for (const ic of nodeComments.inner) {
+            out += nextIndent + formatCommentLine(ic) + "\n";
+          }
+        }
+        out += currentIndent + "}";
+        return out;
       } else {
+        const items = val.map((item, i) => {
+          let currentItem = item;
+          if (
+            currentItem &&
+            typeof (currentItem as { toJSON?: () => unknown }).toJSON ===
+              "function" &&
+            !(currentItem instanceof EnumLiteral) &&
+            !(currentItem instanceof CharLiteral) &&
+            !(currentItem instanceof HexLiteral)
+          ) {
+            currentItem = (currentItem as { toJSON: () => unknown }).toJSON();
+          }
+          let replaced = currentItem;
+          if (replacer) {
+            replaced = replacer.call(val, String(i), currentItem);
+          }
+          return run(replaced, nextIndent, `${currentPath}[${i}]`);
+        });
         return `.{` + items.join(",") + `}`;
       }
     }
 
     if (typeof val === "object") {
+      const nodeComments = commentsTable?.nodes.get(currentPath);
       const entries: [string, unknown][] = [];
       for (const [k, v] of Object.entries(val)) {
         let currentV = v;
@@ -314,21 +402,52 @@ export function stringify(
       }
 
       if (entries.length === 0) {
+        if (isPretty && nodeComments?.inner && nodeComments.inner.length > 0) {
+          const nextIndent = currentIndent + indentStr;
+          const innerLines = nodeComments.inner.map((c) =>
+            nextIndent + formatCommentLine(c)
+          );
+          return `.{\n` + innerLines.join("\n") + `\n` + currentIndent + `}`;
+        }
         return ".{}";
       }
 
       const nextIndent = isPretty ? currentIndent + indentStr : "";
-      const items = entries.map(([k, v]) => {
-        const itemVal = run(v, nextIndent);
-        const itemKey = formatKey(k);
-        const eq = isPretty ? " = " : "=";
-        return `.${itemKey}${eq}${itemVal}`;
-      });
-
       if (isPretty) {
-        return `.{\n` + nextIndent + items.join(",\n" + nextIndent) + `,\n` +
-          currentIndent + `}`;
+        let out = ".{\n";
+        for (const [k, v] of entries) {
+          const fieldPath = currentPath ? `${currentPath}.${k}` : `.${k}`;
+          const fieldComments = commentsTable?.nodes.get(fieldPath);
+
+          if (fieldComments?.leading && fieldComments.leading.length > 0) {
+            for (const lc of fieldComments.leading) {
+              out += nextIndent + formatCommentLine(lc) + "\n";
+            }
+          }
+
+          const itemVal = run(v, nextIndent, fieldPath);
+          const itemKey = formatKey(k);
+          out += nextIndent + `.${itemKey} = ${itemVal},`;
+          if (fieldComments?.trailing) {
+            out += " " + formatCommentLine(fieldComments.trailing);
+          }
+          out += "\n";
+        }
+
+        if (nodeComments?.inner && nodeComments.inner.length > 0) {
+          for (const ic of nodeComments.inner) {
+            out += nextIndent + formatCommentLine(ic) + "\n";
+          }
+        }
+        out += currentIndent + "}";
+        return out;
       } else {
+        const items = entries.map(([k, v]) => {
+          const fieldPath = currentPath ? `${currentPath}.${k}` : `.${k}`;
+          const itemVal = run(v, nextIndent, fieldPath);
+          const itemKey = formatKey(k);
+          return `.${itemKey}=${itemVal}`;
+        });
         return `.{` + items.join(",") + `}`;
       }
     }
@@ -336,7 +455,6 @@ export function stringify(
     return String(val);
   }
 
-  let rootValue = value;
   if (
     rootValue &&
     typeof (rootValue as { toJSON?: () => unknown }).toJSON === "function" &&
@@ -349,5 +467,26 @@ export function stringify(
   if (replacer) {
     rootValue = replacer.call({ "": value }, "", rootValue);
   }
-  return run(rootValue, "");
+
+  let body = run(rootValue, "", "");
+
+  const rootComments = commentsTable?.nodes.get("");
+  if (isPretty && rootComments?.trailing) {
+    body += " " + formatCommentLine(rootComments.trailing);
+  }
+
+  let header = "";
+  if (isPretty && commentsTable?.fileDoc && commentsTable.fileDoc.length > 0) {
+    for (const doc of commentsTable.fileDoc) {
+      header += `//!${doc}\n`;
+    }
+  }
+
+  if (isPretty && rootComments?.leading && rootComments.leading.length > 0) {
+    for (const lc of rootComments.leading) {
+      header += formatCommentLine(lc) + "\n";
+    }
+  }
+
+  return header + body;
 }
