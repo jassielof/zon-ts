@@ -4,8 +4,12 @@
   "license": "MPL-2.0",
   "tasks": {
     "pack": "deno run --allow-all scripts/node.ts",
-    "test": "deno test --allow-read",
     "check": "deno check src/mod.ts && deno lint"
+  },
+  "test": {
+    "permissions": {
+      "read": true
+    }
   },
   "exclude": [
     "references/",

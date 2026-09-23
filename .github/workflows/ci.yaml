@@ -40,4 +40,4 @@ jobs:
       - name: Setup Deno
         uses: denoland/setup-deno@v2
       - name: Run tests
-        run: deno task test
+        run: deno test --permission-set
