@@ -1,7 +1,10 @@
 /**
- * A TypeScript library for de/serializing Zig Object Notation (ZON).
+ * A library for de/serializing Zig Object Notation (ZON).
  *
- * @example
+ * @see {@link https://ziglang.org/documentation/0.16.0/std/#std.zon|Zig's ZON module} for more information.
+ *
+ * @example Basic Usage
+ *
  * ```ts
  * import { parse, stringify } from "@jassiel/zon";
  *
@@ -20,6 +23,7 @@ export {
   type Dependency,
   EnumLiteral,
   type Environment,
+  type EnvVar,
   type Manifest,
   type PackageDependency,
   type ParseOptions,
