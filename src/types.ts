@@ -90,6 +90,65 @@ export class CharLiteral {
   }
 }
 
+/**
+ * Represents a Zig hexadecimal integer literal (e.g., `0xf25cae59b814c9e6`).
+ *
+ * @see {@link https://ziglang.org/documentation/0.16.0/#Integer-Literals}
+ */
+export class HexLiteral {
+  /**
+   * The underlying integer value.
+   * @readonly
+   */
+  public readonly value: bigint;
+
+  /**
+   * Creates a new HexLiteral instance.
+   * @param value A bigint, number, or hexadecimal string representation.
+   */
+  constructor(value: bigint | number | string) {
+    if (typeof value === "string") {
+      const clean = value.replace(/_/g, "");
+      const isNegative = clean.startsWith("-");
+      const withoutSign = isNegative ? clean.slice(1) : clean;
+      const normalized = withoutSign.toLowerCase().startsWith("0x")
+        ? withoutSign
+        : `0x${withoutSign}`;
+      const big = BigInt(normalized);
+      this.value = isNegative ? -big : big;
+    } else {
+      this.value = BigInt(value);
+    }
+  }
+
+  /**
+   * Returns the hexadecimal ZON string representation with the leading `0x` (e.g., `0xf25cae59b814c9e6`).
+   * @returns The formatted hex literal string.
+   */
+  toString(): string {
+    if (this.value < 0n) {
+      return `-0x${(-this.value).toString(16)}`;
+    }
+    return `0x${this.value.toString(16)}`;
+  }
+
+  /**
+   * Returns the serialized JSON string representation.
+   * @returns The formatted hex string.
+   */
+  toJSON(): string {
+    return this.toString();
+  }
+
+  /**
+   * Returns the primitive bigint value.
+   * @returns The underlying bigint.
+   */
+  valueOf(): bigint {
+    return this.value;
+  }
+}
+
 /** Options for parsing ZON. */
 export interface ParseOptions {
   /**
@@ -113,6 +172,16 @@ export interface ParseOptions {
   charLiteral?: "class" | "string" | "number";
 
   /**
+   * How to represent hexadecimal integer literals (e.g., `0xf25cae59b814c9e6`).
+   * - `'bigint'` (default): returns a native `bigint` (or `number` if within safe range and bigint option allows)
+   * - `'class'`: returns an instance of {@link HexLiteral}
+   * - `'string'`: returns a string formatted as hex (e.g., `'0xf25cae59b814c9e6'`)
+   *
+   * @default "bigint"
+   */
+  hexLiteral?: "class" | "bigint" | "string";
+
+  /**
    * How to represent integers that exceed safe limits (`Number.MAX_SAFE_INTEGER`).
    * - `'bigint'` (default): returns a BigInt
    * - `'number'`: returns a number (may lose precision)
@@ -132,6 +201,7 @@ export type ZonValue =
   | null
   | EnumLiteral
   | CharLiteral
+  | HexLiteral
   | ZonValue[]
   | { [key: string]: ZonValue };
 
@@ -178,7 +248,7 @@ export interface Manifest {
    * A 64-bit integer combining a 32-bit ID component and a 32-bit checksum.
    * Together with `name`, represents a globally unique package identifier.
    */
-  fingerprint: number | bigint;
+  fingerprint: number | bigint | HexLiteral;
 
   /**
    * Optional advisory minimum Zig compiler semver version required.

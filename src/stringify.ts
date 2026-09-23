@@ -6,7 +6,7 @@
  * @module
  */
 
-import { CharLiteral, EnumLiteral } from "./types.ts";
+import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
 import type { StringifyOptions } from "./types.ts";
 
 const ZIG_KEYWORDS = new Set([
@@ -251,6 +251,10 @@ export function stringify(
       return escapeChar(val.value);
     }
 
+    if (val instanceof HexLiteral) {
+      return val.toString();
+    }
+
     if (typeof val === "string") {
       return escapeString(val);
     }
@@ -267,7 +271,8 @@ export function stringify(
           typeof (currentItem as { toJSON?: () => unknown }).toJSON ===
             "function" &&
           !(currentItem instanceof EnumLiteral) &&
-          !(currentItem instanceof CharLiteral)
+          !(currentItem instanceof CharLiteral) &&
+          !(currentItem instanceof HexLiteral)
         ) {
           currentItem = (currentItem as { toJSON: () => unknown }).toJSON();
         }
@@ -294,7 +299,8 @@ export function stringify(
           typeof (currentV as { toJSON?: () => unknown }).toJSON ===
             "function" &&
           !(currentV instanceof EnumLiteral) &&
-          !(currentV instanceof CharLiteral)
+          !(currentV instanceof CharLiteral) &&
+          !(currentV instanceof HexLiteral)
         ) {
           currentV = (currentV as { toJSON: () => unknown }).toJSON();
         }
@@ -335,7 +341,8 @@ export function stringify(
     rootValue &&
     typeof (rootValue as { toJSON?: () => unknown }).toJSON === "function" &&
     !(rootValue instanceof EnumLiteral) &&
-    !(rootValue instanceof CharLiteral)
+    !(rootValue instanceof CharLiteral) &&
+    !(rootValue instanceof HexLiteral)
   ) {
     rootValue = (rootValue as { toJSON: () => unknown }).toJSON();
   }

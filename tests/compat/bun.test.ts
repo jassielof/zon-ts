@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 import {
   CharLiteral,
   EnumLiteral,
+  HexLiteral,
   parse,
   stringify,
   Tokenizer,
@@ -53,6 +54,16 @@ describe("Direct TypeScript Source", () => {
     expect(tokenizer.next().type).toBe(TokenType.Period);
     expect(tokenizer.next().type).toBe(TokenType.LBrace);
   });
+
+  test("preserves HexLiteral roundtrip", () => {
+    const data = parse<{ fingerprint: HexLiteral }>(
+      ".{ .fingerprint = 0xf25cae59b814c9e6 }",
+      { hexLiteral: "class" },
+    );
+    expect(data.fingerprint).toBeInstanceOf(HexLiteral);
+    expect(data.fingerprint.toString()).toBe("0xf25cae59b814c9e6");
+    expect(stringify(data)).toBe(".{.fingerprint=0xf25cae59b814c9e6}");
+  });
 });
 
 describe("Built Package Artifact", () => {
@@ -62,5 +73,9 @@ describe("Built Package Artifact", () => {
       enumLiteral: "string",
     });
     expect(parsed).toEqual({ target: "bun" });
+
+    const hex = packaged.parse("0xf25cae59b814c9e6", { hexLiteral: "class" });
+    expect(hex).toBeInstanceOf(packaged.HexLiteral);
+    expect(packaged.stringify(hex)).toBe("0xf25cae59b814c9e6");
   });
 });

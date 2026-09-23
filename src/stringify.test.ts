@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { stringify } from "./stringify.ts";
-import { CharLiteral, EnumLiteral } from "./types.ts";
+import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
 
 Deno.test("Basic", () => {
   assertEquals(stringify(true), "true");
@@ -11,6 +11,15 @@ Deno.test("Basic", () => {
   assertEquals(stringify("hello"), '"hello"');
   assertEquals(stringify(new EnumLiteral("docent")), ".docent");
   assertEquals(stringify(new CharLiteral("\n")), "'\\n'");
+  assertEquals(
+    stringify(new HexLiteral("0xf25cae59b814c9e6")),
+    "0xf25cae59b814c9e6",
+  );
+  assertEquals(
+    stringify(new HexLiteral(17464025155399633382n)),
+    "0xf25cae59b814c9e6",
+  );
+  assertEquals(stringify(new HexLiteral(-255n)), "-0xff");
   assertThrows(() => new CharLiteral("ab"));
 });
 

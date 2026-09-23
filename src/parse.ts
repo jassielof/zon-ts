@@ -7,7 +7,7 @@
  */
 
 import { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
-import { CharLiteral, EnumLiteral } from "./types.ts";
+import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
 import type { ParseOptions } from "./types.ts";
 
 function unescapeString(raw: string): string {
@@ -121,7 +121,8 @@ function parseHexFloat(str: string): number {
 function parseZigNumber(
   str: string,
   bigintOption: "bigint" | "number" | "string",
-): number | bigint | string {
+  hexLiteralOption?: "class" | "bigint" | "string",
+): number | bigint | string | HexLiteral {
   const clean = str.replace(/_/g, "");
 
   const isHex = clean.toLowerCase().startsWith("0x");
@@ -134,6 +135,14 @@ function parseZigNumber(
       return parseHexFloat(clean);
     }
     return parseFloat(clean);
+  }
+
+  if (isHex && hexLiteralOption === "class") {
+    return new HexLiteral(clean);
+  }
+
+  if (isHex && hexLiteralOption === "string") {
+    return clean;
   }
 
   let val: bigint;
@@ -344,7 +353,11 @@ class Parser {
       case TokenType.NumberLiteral: {
         const val = tok.value;
         this.advance();
-        return parseZigNumber(val, this.options.bigint ?? "bigint");
+        return parseZigNumber(
+          val,
+          this.options.bigint ?? "bigint",
+          this.options.hexLiteral,
+        );
       }
 
       case TokenType.Minus: {
@@ -355,8 +368,11 @@ class Parser {
           const parsed = parseZigNumber(
             nextTok.value,
             this.options.bigint ?? "bigint",
+            this.options.hexLiteral,
           );
-          if (typeof parsed === "bigint") {
+          if (parsed instanceof HexLiteral) {
+            return new HexLiteral(-parsed.value);
+          } else if (typeof parsed === "bigint") {
             return -parsed;
           } else if (typeof parsed === "number") {
             return -parsed;
@@ -378,7 +394,11 @@ class Parser {
         const nextTok = this.currentToken;
         if (nextTok.type === TokenType.NumberLiteral) {
           this.advance();
-          return parseZigNumber(nextTok.value, this.options.bigint ?? "bigint");
+          return parseZigNumber(
+            nextTok.value,
+            this.options.bigint ?? "bigint",
+            this.options.hexLiteral,
+          );
         }
         if (nextTok.type === TokenType.Identifier && nextTok.value === "inf") {
           this.advance();

@@ -7,7 +7,9 @@
       "command": "deno run --allow-all scripts/node.ts",
       "description": "Pack the library for Node",
       "files": [
-        "scripts/node.ts"
+        "scripts/node.ts",
+        "src/**/*",
+        "deno.json"
       ],
       "output": [
         "node/**/*"

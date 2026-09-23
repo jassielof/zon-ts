@@ -5,6 +5,7 @@ const {
   stringify,
   EnumLiteral,
   CharLiteral,
+  HexLiteral,
   Tokenizer,
   TokenType,
 } = require("../../node");
@@ -67,4 +68,14 @@ test("Tokenizer", () => {
   assert.equal(tok1.type, TokenType.Period);
   const tok2 = tokenizer.next();
   assert.equal(tok2.type, TokenType.LBrace);
+});
+
+test("HexLiteral roundtrip", () => {
+  const parsed = parse(".{ .fingerprint = 0xf25cae59b814c9e6 }", {
+    hexLiteral: "class",
+  });
+  assert.ok(parsed.fingerprint instanceof HexLiteral);
+  assert.equal(parsed.fingerprint.toString(), "0xf25cae59b814c9e6");
+  const output = stringify(parsed);
+  assert.equal(output, ".{.fingerprint=0xf25cae59b814c9e6}");
 });

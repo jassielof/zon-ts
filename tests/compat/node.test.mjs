@@ -5,6 +5,7 @@ import {
   stringify,
   EnumLiteral,
   CharLiteral,
+  HexLiteral,
   Tokenizer,
   TokenType,
 } from "../../node/esm/mod.js";
@@ -49,4 +50,14 @@ test("Tokenizer scan", () => {
   const tok2 = tokenizer.next();
   assert.equal(tok2.type, TokenType.Identifier);
   assert.equal(tok2.value, "hello");
+});
+
+test("HexLiteral roundtrip", () => {
+  const parsed = parse(".{ .fingerprint = 0xf25cae59b814c9e6 }", {
+    hexLiteral: "class",
+  });
+  assert.ok(parsed.fingerprint instanceof HexLiteral);
+  assert.equal(parsed.fingerprint.toString(), "0xf25cae59b814c9e6");
+  const output = stringify(parsed);
+  assert.equal(output, ".{.fingerprint=0xf25cae59b814c9e6}");
 });

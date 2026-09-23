@@ -1,6 +1,6 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { parse } from "./parse.ts";
-import { CharLiteral, EnumLiteral } from "./types.ts";
+import { CharLiteral, EnumLiteral, HexLiteral } from "./types.ts";
 
 Deno.test("Primitives", () => {
   assertEquals(parse("true"), true);
@@ -98,6 +98,32 @@ Deno.test("BigInt limits", () => {
     parse("0xf25cae59b814c9e6", { bigint: "number" }),
     17464025155399633000,
   );
+});
+
+Deno.test("Hexadecimal Literals", () => {
+  // hexLiteral: "class"
+  const hex = parse("0xf25cae59b814c9e6", { hexLiteral: "class" });
+  assertEquals(hex instanceof HexLiteral, true);
+  assertEquals((hex as HexLiteral).value, 17464025155399633382n);
+  assertEquals((hex as HexLiteral).toString(), "0xf25cae59b814c9e6");
+  assertEquals((hex as HexLiteral).toJSON(), "0xf25cae59b814c9e6");
+  assertEquals((hex as HexLiteral).valueOf(), 17464025155399633382n);
+
+  // Negative hex with hexLiteral: "class"
+  const negHex = parse("-0xff", { hexLiteral: "class" });
+  assertEquals(negHex instanceof HexLiteral, true);
+  assertEquals((negHex as HexLiteral).value, -255n);
+  assertEquals((negHex as HexLiteral).toString(), "-0xff");
+
+  // hexLiteral: "string"
+  assertEquals(
+    parse("0xf25cae59b814c9e6", { hexLiteral: "string" }),
+    "0xf25cae59b814c9e6",
+  );
+
+  // Default remains bigint/number
+  assertEquals(parse("0xff"), 255);
+  assertEquals(parse("0xf25cae59b814c9e6"), 17464025155399633382n);
 });
 
 Deno.test("Arrays and Structs", () => {
