@@ -1,11 +1,15 @@
 /**
  * Tokenizer for Zig Object Notation (ZON).
  *
+ * @see {@link https://ziglang.org/documentation/0.16.0/std/#std.zon|Zig's ZON module}
+ *
  * @module
  */
 
 /**
  * Represents the type of a ZON token.
+ *
+ * @enum {string}
  */
 export const TokenType = {
   /** The dot symbol ('.') */
@@ -174,7 +178,9 @@ export class Tokenizer {
 
   /**
    * Retrieves the next token from the input.
-   * @returns The next parsed Token.
+   *
+   * @returns The next parsed {@link Token}, or an {@link TokenType.Eof} token if the end of input is reached.
+   * @throws {Error} If an unterminated literal or invalid escape is encountered.
    */
   public next(): Token {
     this.skipWhitespaceAndComments();

@@ -1,6 +1,8 @@
 /**
  * Serializer for Zig Object Notation (ZON).
  *
+ * @see {@link https://ziglang.org/documentation/0.16.0/std/#std.zon|Zig's ZON module}
+ *
  * @module
  */
 
@@ -145,9 +147,9 @@ function escapeChar(char: string): string {
 }
 
 /**
- * Stringifies a JavaScript/TypeScript value into a Zig Object Notation (ZON) string.
+ * Serializes a value into a Zig Object Notation (ZON) string.
  *
- * @param value The value to stringify.
+ * @param value The value to serialize into ZON.
  * @param options Stringification options.
  * @returns The ZON string representation.
  *

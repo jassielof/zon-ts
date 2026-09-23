@@ -1,6 +1,8 @@
 /**
  * Parser for Zig Object Notation (ZON).
  *
+ * @see {@link https://ziglang.org/documentation/0.16.0/std/#std.zon|Zig's ZON module}
+ *
  * @module
  */
 
@@ -425,9 +427,11 @@ class Parser {
 /**
  * Parses a Zig Object Notation (ZON) string into a value.
  *
+ * @template T The expected type of the parsed value.
  * @param input The ZON string to parse.
  * @param options Parsing configuration options.
- * @returns The parsed JavaScript/TypeScript value.
+ * @returns The parsed value as type `T`.
+ * @throws {Error} If the ZON input contains invalid syntax, unexpected tokens, or duplicate struct fields.
  *
  * @example Parsing a struct into an object
  * ```ts
