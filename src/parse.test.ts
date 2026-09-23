@@ -2,7 +2,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { parse } from "./parse.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 
-Deno.test("Parser - Primitives", () => {
+Deno.test("Primitives", () => {
   assertEquals(parse("true"), true);
   assertEquals(parse("false"), false);
   assertEquals(parse("null"), null);
@@ -17,14 +17,14 @@ Deno.test("Parser - Primitives", () => {
   assertEquals(parse("0xff"), 255);
 });
 
-Deno.test("Parser - Hex float", () => {
+Deno.test("Hex float", () => {
   // 0x1.a2p+3 is 1.6328125 * 8 = 13.0625
   assertEquals(parse("0x1.a2p+3"), 13.0625);
   // 0x1.5p-2 is 1.3125 * 0.25 = 0.328125
   assertEquals(parse("0x1.5p-2"), 0.328125);
 });
 
-Deno.test("Parser - Strings and escapes", () => {
+Deno.test("Strings and escapes", () => {
   assertEquals(parse('"hello"'), "hello");
   assertEquals(parse('"hello\\nworld"'), "hello\nworld");
   assertEquals(parse('"hello\\rworld"'), "hello\rworld");
@@ -35,7 +35,7 @@ Deno.test("Parser - Strings and escapes", () => {
   assertEquals(parse('"\\u{1f600}"'), "😀");
 });
 
-Deno.test("Parser - Multiline Strings", () => {
+Deno.test("Multiline Strings", () => {
   const code = `
     \\\\hello
     \\\\world
@@ -43,7 +43,7 @@ Deno.test("Parser - Multiline Strings", () => {
   assertEquals(parse(code), "hello\nworld");
 });
 
-Deno.test("Parser - Enum Literals", () => {
+Deno.test("Enum Literals", () => {
   // Default (class)
   const result1 = parse(".foo");
   assertEquals(result1 instanceof EnumLiteral, true);
@@ -61,7 +61,7 @@ Deno.test("Parser - Enum Literals", () => {
   assertEquals((resultEscaped as EnumLiteral).value, "foo-bar");
 });
 
-Deno.test("Parser - Character Literals", () => {
+Deno.test("Character Literals", () => {
   // Default (class)
   const result1 = parse("'a'");
   assertEquals(result1 instanceof CharLiteral, true);
@@ -78,7 +78,7 @@ Deno.test("Parser - Character Literals", () => {
   assertEquals((resultEsc as CharLiteral).value, "\n");
 });
 
-Deno.test("Parser - BigInt limits", () => {
+Deno.test("BigInt limits", () => {
   // safe integer limit
   assertEquals(parse("9007199254740991"), 9007199254740991);
   // above safe integer limit -> BigInt by default
@@ -100,7 +100,7 @@ Deno.test("Parser - BigInt limits", () => {
   );
 });
 
-Deno.test("Parser - Arrays and Structs", () => {
+Deno.test("Arrays and Structs", () => {
   const structCode = `.{
     .name = "zon",
     .version = "1.0.0",
@@ -121,7 +121,7 @@ Deno.test("Parser - Arrays and Structs", () => {
   assertEquals(parsed.paths, ["src", "LICENSE"]);
 });
 
-Deno.test("Parser - Syntax Errors", () => {
+Deno.test("Syntax Errors", () => {
   assertThrows(() => parse("true false"));
   assertThrows(() => parse(".{ .name = }"));
   assertThrows(() => parse(".{ .name = 123"));
@@ -129,7 +129,7 @@ Deno.test("Parser - Syntax Errors", () => {
   assertThrows(() => parse(".{ .name = 1, .name = 2 }"));
 });
 
-Deno.test("Parser - special field names cannot mutate prototypes", () => {
+Deno.test("special field names cannot mutate prototypes", () => {
   const parsed = parse<Record<string, unknown>>(
     `.{ .@"__proto__" = .{ .polluted = true }, .@"constructor" = 1 }`,
   );
@@ -139,7 +139,7 @@ Deno.test("Parser - special field names cannot mutate prototypes", () => {
   assertEquals(parsed["constructor"], 1);
 });
 
-Deno.test("Parser - character number uses a Unicode code point", () => {
+Deno.test("character number uses a Unicode code point", () => {
   assertEquals(parse("'😀'", { charLiteral: "number" }), 0x1f600);
   assertThrows(() => parse("''"));
   assertThrows(() => parse("'ab'"));

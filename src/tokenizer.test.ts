@@ -1,7 +1,7 @@
 import { assertEquals, assertThrows } from "@std/assert";
 import { Tokenizer, TokenType } from "./tokenizer.ts";
 
-Deno.test("Tokenizer - Whitespace and Comments", () => {
+Deno.test("Whitespace and Comments", () => {
   const code = `
     // this is a comment
     .name = "zon", // inline comment
@@ -29,7 +29,7 @@ Deno.test("Tokenizer - Whitespace and Comments", () => {
   assertEquals(tok6.type, TokenType.Eof);
 });
 
-Deno.test("Tokenizer - Symbols", () => {
+Deno.test("Symbols", () => {
   const tokenizer = new Tokenizer(".={},-+");
   assertEquals(tokenizer.next().type, TokenType.Period);
   assertEquals(tokenizer.next().type, TokenType.Equal);
@@ -41,7 +41,7 @@ Deno.test("Tokenizer - Symbols", () => {
   assertEquals(tokenizer.next().type, TokenType.Eof);
 });
 
-Deno.test("Tokenizer - Identifiers", () => {
+Deno.test("Identifiers", () => {
   const tokenizer = new Tokenizer(`foo bar @"escaped field"`);
 
   const tok1 = tokenizer.next();
@@ -57,7 +57,7 @@ Deno.test("Tokenizer - Identifiers", () => {
   assertEquals(tok3.value, '@"escaped field"');
 });
 
-Deno.test("Tokenizer - Strings & Characters", () => {
+Deno.test("Strings & Characters", () => {
   const tokenizer = new Tokenizer(`"str" 'c' "\\n" '\\t'`);
 
   assertEquals(tokenizer.next().value, '"str"');
@@ -66,7 +66,7 @@ Deno.test("Tokenizer - Strings & Characters", () => {
   assertEquals(tokenizer.next().value, "'\\t'");
 });
 
-Deno.test("Tokenizer - Multiline Strings", () => {
+Deno.test("Multiline Strings", () => {
   const tokenizer = new Tokenizer(`\\\\line 1\n\\\\line 2`);
 
   const tok1 = tokenizer.next();
@@ -78,7 +78,7 @@ Deno.test("Tokenizer - Multiline Strings", () => {
   assertEquals(tok2.value, "\\\\line 2");
 });
 
-Deno.test("Tokenizer - Number Literals", () => {
+Deno.test("Number Literals", () => {
   const cases = [
     "123",
     "1_000",
@@ -96,7 +96,7 @@ Deno.test("Tokenizer - Number Literals", () => {
   }
 });
 
-Deno.test("Tokenizer - Errors", () => {
+Deno.test("Errors", () => {
   assertThrows(() => new Tokenizer('"unterminated').next());
   assertThrows(() => new Tokenizer("'unterminated").next());
   assertThrows(() => new Tokenizer('@"unterminated').next());

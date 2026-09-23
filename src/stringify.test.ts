@@ -2,7 +2,7 @@ import { assertEquals, assertThrows } from "@std/assert";
 import { stringify } from "./stringify.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 
-Deno.test("Serializer - Basic", () => {
+Deno.test("Basic", () => {
   assertEquals(stringify(true), "true");
   assertEquals(stringify(false), "false");
   assertEquals(stringify(null), "null");
@@ -14,7 +14,7 @@ Deno.test("Serializer - Basic", () => {
   assertThrows(() => new CharLiteral("ab"));
 });
 
-Deno.test("Serializer - Structs and Arrays", () => {
+Deno.test("Structs and Arrays", () => {
   const val = {
     name: new EnumLiteral("docent"),
     description: "Doc linter",
@@ -41,7 +41,7 @@ Deno.test("Serializer - Structs and Arrays", () => {
   assertEquals(stringify(val, { space: 4 }), expectedPretty);
 });
 
-Deno.test("Serializer - Keyword and Ident escaping", () => {
+Deno.test("Keyword and Ident escaping", () => {
   const val = {
     const: 123,
     "invalid-name": "yes",
@@ -49,7 +49,7 @@ Deno.test("Serializer - Keyword and Ident escaping", () => {
   assertEquals(stringify(val), `.{.@"const"=123,.@"invalid-name"="yes"}`);
 });
 
-Deno.test("Serializer - toJSON Support", () => {
+Deno.test("toJSON Support", () => {
   const custom = {
     value: "inner",
     toJSON() {
@@ -59,7 +59,7 @@ Deno.test("Serializer - toJSON Support", () => {
   assertEquals(stringify(custom), '"inner"');
 });
 
-Deno.test("Serializer - Replacer Function", () => {
+Deno.test("Replacer Function", () => {
   const val = {
     a: 1,
     b: 2,
