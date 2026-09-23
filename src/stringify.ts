@@ -1,3 +1,9 @@
+/**
+ * Serializer for Zig Object Notation (ZON).
+ *
+ * @module
+ */
+
 import { CharLiteral, EnumLiteral } from "./types.ts";
 import type { StringifyOptions } from "./types.ts";
 

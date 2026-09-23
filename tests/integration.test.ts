@@ -54,7 +54,10 @@ Deno.test("Integration - Dynamic Fixtures Roundtrip", async () => {
       const zonText = await Deno.readTextFile(zonPath);
       const parsed = parse(zonText);
 
-      const expectedJson = await Deno.readTextFile(jsonPath);
+      const expectedJson = (await Deno.readTextFile(jsonPath)).replace(
+        /\r\n/g,
+        "\n",
+      );
       assertEquals(
         toJSONString(parsed) + "\n",
         expectedJson,

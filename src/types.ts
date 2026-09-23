@@ -1,18 +1,34 @@
 /**
+ * Type definitions, data structures, and AST representations for Zig Object Notation (ZON).
+ *
+ * @module
+ */
+
+/**
  * Represents a Zig enum literal (e.g., `.docent` or `.@"some name"`).
  */
 export class EnumLiteral {
   /** The value of the enum literal (without the leading dot). */
   public readonly value: string;
 
+  /**
+   * Creates a new EnumLiteral instance.
+   * @param value The value of the enum literal (without the leading dot).
+   */
   constructor(value: string) {
     this.value = value;
   }
 
+  /**
+   * Returns the ZON string representation with the leading dot (e.g., `.docent`).
+   */
   toString(): string {
     return `.${this.value}`;
   }
 
+  /**
+   * Returns the serialized JSON string representation.
+   */
   toJSON(): string {
     return `.${this.value}`;
   }
@@ -25,6 +41,10 @@ export class CharLiteral {
   /** The value of the character literal (without the quotes). */
   public readonly value: string;
 
+  /**
+   * Creates a new CharLiteral instance.
+   * @param value A string containing exactly one Unicode scalar value.
+   */
   constructor(value: string) {
     const codePoint = value.codePointAt(0);
     if (
@@ -38,10 +58,16 @@ export class CharLiteral {
     this.value = value;
   }
 
+  /**
+   * Returns the ZON string representation enclosed in single quotes (e.g., `'a'`).
+   */
   toString(): string {
     return `'${this.value}'`;
   }
 
+  /**
+   * Returns the serialized JSON string representation.
+   */
   toJSON(): string {
     return this.value;
   }
@@ -156,7 +182,9 @@ export type Dependency = PathDependency | PackageDependency;
 export interface PathDependency {
   /** Relative or absolute filesystem path to the dependency. */
   path: string;
+  /** Not defined for path-based dependencies. */
   url?: never;
+  /** Not defined for path-based dependencies. */
   hash?: never;
 }
 
@@ -168,5 +196,6 @@ export interface PackageDependency {
   url: string;
   /** Expected cryptographic package multihash. */
   hash: string;
+  /** Not defined for package-based dependencies. */
   path?: never;
 }

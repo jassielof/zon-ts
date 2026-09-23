@@ -1,3 +1,9 @@
+/**
+ * Parser for Zig Object Notation (ZON).
+ *
+ * @module
+ */
+
 import { type Token, Tokenizer, TokenType } from "./tokenizer.ts";
 import { CharLiteral, EnumLiteral } from "./types.ts";
 import type { ParseOptions } from "./types.ts";

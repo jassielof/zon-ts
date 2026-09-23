@@ -1,4 +1,10 @@
 /**
+ * Tokenizer for Zig Object Notation (ZON).
+ *
+ * @module
+ */
+
+/**
  * Represents the type of a ZON token.
  */
 export const TokenType = {
