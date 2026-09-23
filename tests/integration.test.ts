@@ -23,7 +23,7 @@ function toJSONString(val: unknown): string {
   );
 }
 
-Deno.test("Integration - Specific Assertions", async () => {
+Deno.test("Specific Assertions", async () => {
   // deno-lint-ignore no-explicit-any
   const buildZon = parse<any>(
     await Deno.readTextFile("./tests/fixtures/build.zig.zon"),
@@ -41,7 +41,7 @@ Deno.test("Integration - Specific Assertions", async () => {
   assertEquals(envZon.env.ZIG_GLOBAL_CACHE_DIR, "D:/zig-cache/global/");
 });
 
-Deno.test("Integration - Dynamic Fixtures Roundtrip", async () => {
+Deno.test("Dynamic Fixtures Roundtrip", async () => {
   const dir = "./tests/fixtures";
   for await (const entry of Deno.readDir(dir)) {
     if (entry.isFile && entry.name.endsWith(".zon")) {

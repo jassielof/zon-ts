@@ -5,18 +5,20 @@ await emptyDir("./node");
 import DENO_JSON from "../deno.json" with { type: "json" };
 
 await build({
-  entryPoints: ["./src/mod.ts"],
+  entryPoints: [
+    "./src/mod.ts",
+    "./src/parse.ts",
+    "./src/types.ts",
+    "./src/stringify.ts",
+  ],
   outDir: "./node",
-  test: false,
-  typeCheck: false,
-  skipNpmInstall: true,
   shims: {
-    deno: false,
+    deno: true,
   },
+  test: false,
   compilerOptions: {
     lib: ["ESNext", "DOM"],
     target: "Latest",
-    skipLibCheck: true,
   },
   package: {
     name: DENO_JSON.name,
@@ -29,9 +31,12 @@ await build({
       type: "git",
       url: "https://github.com/jassielof/zon-ts.git",
     },
-  },
-  postBuild() {
-    Deno.copyFileSync("./LICENSE.txt", "./node/LICENSE");
-    Deno.copyFileSync("./README.md", "./node/README.md");
+    bugs: {
+      url: "https://github.com/jassielof/zon-ts/issues",
+    },
+    homepage: "https://github.com/jassielof/zon-ts",
   },
 });
+
+await Deno.copyFile("./LICENSE.txt", "./node/LICENSE");
+await Deno.copyFile("./README.md", "./node/README.md");

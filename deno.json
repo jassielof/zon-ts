@@ -6,9 +6,6 @@
     "pack": {
       "command": "deno run --allow-all scripts/node.ts",
       "description": "Pack the library for Node",
-      "dependencies": [
-        "test"
-      ],
       "files": [
         "scripts/node.ts"
       ],
@@ -61,6 +58,33 @@
       "files": [
         "**/*.test.ts"
       ]
+    },
+    "test:node": {
+      "description": "Run compatibility tests with Node.js",
+      "command": "node --test tests/compat/node.test.cjs tests/compat/node.test.mjs",
+      "dependencies": [
+        "pack"
+      ],
+      "files": [
+        "tests/compat/node.test.*"
+      ]
+    },
+    "test:bun": {
+      "description": "Run compatibility tests with Bun",
+      "command": "bun test tests/compat/bun.test.ts",
+      "dependencies": [
+        "pack"
+      ],
+      "files": [
+        "tests/compat/bun.test.*"
+      ]
+    },
+    "test:compat": {
+      "description": "Run Node.js and Bun compatibility tests",
+      "dependencies": [
+        "test:node",
+        "test:bun"
+      ]
     }
   },
   "test": {
@@ -70,7 +94,8 @@
   },
   "exclude": [
     "references/",
-    "node/"
+    "node/",
+    "tests/compat/"
   ],
   "imports": {
     "@deno/dnt": "jsr:@deno/dnt@^0.43.2",
