@@ -3,8 +3,65 @@
   "version": "0.1.0",
   "license": "MPL-2.0",
   "tasks": {
-    "pack": "deno run --allow-all scripts/node.ts",
-    "check": "deno check src/mod.ts && deno lint"
+    "pack": {
+      "command": "deno run --allow-all scripts/node.ts",
+      "description": "Pack the library for Node",
+      "dependencies": [
+        "test"
+      ],
+      "files": [
+        "scripts/node.ts"
+      ],
+      "output": [
+        "node/**/*"
+      ]
+    },
+    "check": {
+      "description": "Check types",
+      "command": "deno check --doc src tests scripts",
+      "files": [
+        "src/**/*",
+        "tests/**/*",
+        "scripts/**/*"
+      ]
+    },
+    "quality": {
+      "description": "Run static analysis quality checks",
+      "command": "deno fmt --check",
+      "files": [
+        "**/*"
+      ],
+      "dependencies": [
+        "lint"
+      ]
+    },
+    "lint": {
+      "description": "Lint code and documentation",
+      "command": "deno lint",
+      "dependencies": [
+        "check",
+        "lint-doc"
+      ],
+      "files": [
+        "src/**/*",
+        "tests/**/*",
+        "scripts/**/*"
+      ]
+    },
+    "lint-doc": {
+      "description": "Lint documentation",
+      "command": "deno doc --lint src",
+      "files": [
+        "src/**/*"
+      ]
+    },
+    "test": {
+      "command": "deno test --permission-set --doc --parallel",
+      "description": "Test code and documentation examples",
+      "files": [
+        "**/*.test.ts"
+      ]
+    }
   },
   "test": {
     "permissions": {
